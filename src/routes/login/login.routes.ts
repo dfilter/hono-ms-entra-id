@@ -7,6 +7,7 @@ import { createRouter } from "@/lib/create-app";
 import cca, { createState, cryptoProvider } from "@/lib/msal";
 import { findOrCreateUserInsertSession } from "@/db/queries/sessions.queries";
 import { getSession } from "@/lib/session.helpers";
+import { ReasonPhrases, StatusCodes } from "http-status-codes";
 
 const secure = env.NODE_ENV === "production";
 const cookieOptions: CookieOptions = {
@@ -27,7 +28,7 @@ const loginRouter = createRouter();
 
 loginRouter.get("/login", async (c) => {
   const session = await getSession(c);
-  if (session) return c.redirect("/", 302);
+  if (session) return c.redirect("/", StatusCodes.MOVED_TEMPORARILY);
 
   const state = createState();
   const nonce = createState();
@@ -42,7 +43,7 @@ loginRouter.get("/login", async (c) => {
   setCookie(c, "state", state, cookieOptions);
   setCookie(c, "nonce", nonce, cookieOptions);
 
-  return c.redirect(url, 302);
+  return c.redirect(url, StatusCodes.MOVED_TEMPORARILY);
 });
 
 loginRouter.get("/login/callback", async (c) => {
@@ -53,7 +54,9 @@ loginRouter.get("/login/callback", async (c) => {
   const nonce = getCookie(c, "nonce") ?? undefined;
 
   if (!code || state !== stateCookie) {
-    return c.text("Failed to authenticate.", 400, { Location: "/" });
+    return c.text(ReasonPhrases.BAD_REQUEST, StatusCodes.BAD_REQUEST, {
+      Location: "/",
+    });
   }
 
   let authResult: AuthenticationResult;
@@ -68,7 +71,11 @@ loginRouter.get("/login/callback", async (c) => {
     );
   } catch (e) {
     console.error(e);
-    return c.text("Failed to acquire session token.", 500, { Location: "/" });
+    return c.text(
+      ReasonPhrases.INTERNAL_SERVER_ERROR,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      { Location: "/" }
+    );
   }
 
   const account = authResult.account;
@@ -77,7 +84,9 @@ loginRouter.get("/login/callback", async (c) => {
     console.error(
       new Error(message + " Ensure scopes are correct.", { cause: authResult })
     );
-    return c.text(message, 400, { Location: "/" });
+    return c.text(ReasonPhrases.BAD_REQUEST, StatusCodes.BAD_REQUEST, {
+      Location: "/",
+    });
   }
 
   const token = await cryptoProvider.hashString(authResult.uniqueId);
@@ -97,7 +106,11 @@ loginRouter.get("/login/callback", async (c) => {
   };
   const { error, data } = await findOrCreateUserInsertSession(user, session);
   if (error) {
-    return c.text(error.message, 500, { Location: "/" });
+    return c.text(
+      ReasonPhrases.INTERNAL_SERVER_ERROR,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      { Location: "/" }
+    );
   }
 
   const encodedToken = cryptoProvider.base64Encode(token);
@@ -106,7 +119,7 @@ loginRouter.get("/login/callback", async (c) => {
     expires: authResult.expiresOn ?? undefined,
   });
 
-  return c.redirect("/", 302);
+  return c.redirect("/", StatusCodes.MOVED_TEMPORARILY);
 });
 
 export default loginRouter;
