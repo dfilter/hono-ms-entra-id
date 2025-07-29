@@ -1,4 +1,3 @@
-import path from "node:path";
 import {
   ConfidentialClientApplication,
   CryptoProvider,
@@ -6,7 +5,7 @@ import {
 } from "@azure/msal-node";
 
 import env from "@/env";
-import { CacheClient } from "@/lib/msal/CacheClient";
+import CacheClient from "@/lib/msal/CacheClient";
 
 export const cryptoProvider = new CryptoProvider();
 
@@ -22,8 +21,6 @@ export function shouldTokenRefresh(
   return Date.now() + gracePeriod <= expiresOn.getDate();
 }
 
-const cacheFilePath = path.join(`${process.cwd()}`, "cache", "cache.json");
-
 const cca = new ConfidentialClientApplication({
   auth: {
     clientId: env.MSAL_CLIENT_ID,
@@ -31,7 +28,7 @@ const cca = new ConfidentialClientApplication({
     clientSecret: env.MSAL_CLIENT_SECRET,
   },
   cache: {
-    cachePlugin: new CacheClient(cacheFilePath),
+    cachePlugin: new CacheClient(),
   },
   system: {
     loggerOptions: {

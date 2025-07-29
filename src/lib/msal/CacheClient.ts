@@ -1,22 +1,33 @@
-import type { ICachePlugin, ISerializableTokenCache, TokenCacheContext } from "@azure/msal-node";
+import { tryCatch } from "@/lib/error-handling";
+import type {
+  ICachePlugin,
+  ISerializableTokenCache,
+  TokenCacheContext,
+} from "@azure/msal-node";
 import fs from "node:fs";
+import path from "path";
 
+export default class CacheClient implements ICachePlugin {
+  static cacheFilePath = path.join(process.cwd(), "cache");
+  static cacheFile = path.join(CacheClient.cacheFilePath, "cache.json");
 
-export class CacheClient implements ICachePlugin {
-  private cacheLocation: string;
+  static createCacheFileDir = tryCatch(
+    async () =>
+      await fs.promises.mkdir(CacheClient.cacheFilePath, { recursive: true })
+  );
 
-  constructor(cacheLocation: string) {
-    this.cacheLocation = cacheLocation;
-  }
-
-  async writeCache(tokenCache: ISerializableTokenCache) {
+  writeCache = tryCatch(async (tokenCache: ISerializableTokenCache) => {
     const tokenCacheSerialized = tokenCache.serialize();
     await fs.promises.writeFile(
-      this.cacheLocation,
+      CacheClient.cacheFile,
       tokenCacheSerialized,
       "utf-8"
     );
-  }
+  });
+
+  readCache = tryCatch(
+    async () => await fs.promises.readFile(CacheClient.cacheFile, "utf-8")
+  );
 
   async afterCacheAccess(tokenCacheContext: TokenCacheContext) {
     if (!tokenCacheContext.cacheHasChanged) return;
@@ -27,12 +38,13 @@ export class CacheClient implements ICachePlugin {
   async beforeCacheAccess(tokenCacheContext: TokenCacheContext) {
     if (!tokenCacheContext.cacheHasChanged) return;
 
-    if (!fs.existsSync(this.cacheLocation)) {
+    if (!fs.existsSync(CacheClient.cacheFile)) {
       await this.writeCache(tokenCacheContext.tokenCache);
       return;
     }
 
-    const tokenCache = await fs.promises.readFile(this.cacheLocation, "utf-8");
-    tokenCacheContext.tokenCache.deserialize(tokenCache);
+    const { error, data } = await this.readCache();
+    if (error) return;
+    tokenCacheContext.tokenCache.deserialize(data);
   }
 }

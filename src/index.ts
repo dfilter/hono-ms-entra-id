@@ -1,10 +1,11 @@
-import path from "path";
+import path from "node:path";
 import { serve } from "@hono/node-server";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 import app from "@/app";
 import env from "@/env";
 import db from "@/db";
+import CacheClient from "@/lib/msal/CacheClient";
 
 async function main() {
   if (env.NODE_ENV === "production") {
@@ -13,6 +14,12 @@ async function main() {
       migrationsFolder: path.join(process.cwd(), "drizzle"),
     });
     console.log("✅ Migrations completed!");
+  }
+
+  const { error } = await CacheClient.createCacheFileDir();
+  if (error) {
+    console.error(error);
+    process.exit(1);
   }
 
   serve(
