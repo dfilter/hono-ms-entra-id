@@ -1,11 +1,13 @@
 import { z } from "zod";
 
+const PORT = 9000;
+
 const EnvSchema = z
   .object({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
-    PORT: z.coerce.number().default(9000),
+    PORT: z.coerce.number().default(PORT),
     POSTGRES_PORT: z.coerce.number(),
     POSTGRES_HOST: z.string().default("localhost"),
     POSTGRES_DB: z.string(),
@@ -13,6 +15,11 @@ const EnvSchema = z
     POSTGRES_USER: z.string(),
     SERVER_URL: z.string().optional(),
     TOKEN: z.string().optional(),
+    MSAL_CLIENT_ID: z.uuid(),
+    MSAL_TENANT_ID: z.uuid(),
+    MSAL_CLIENT_SCOPE: z.string(),
+    MSAL_CLIENT_SECRET: z.string(),
+    MSAL_REDIRECT_URL: z.url().default(`http://localhost:${PORT}/login/callback`)
   })
   .refine(
     (data) =>

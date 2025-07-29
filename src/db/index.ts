@@ -2,6 +2,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 import env from "@/env";
+import { sessionRelations, sessions } from "@/db/schema/sessions";
+import { users } from "@/db/schema/users";
 
 /**
  * Cache the database connection in development.
@@ -23,7 +25,11 @@ if (env.NODE_ENV !== "production") globalForDb.pool = pool;
 
 const db = drizzle(pool, {
   casing: "snake_case",
-  schema: {},
+  schema: {
+    sessions,
+    sessionRelations,
+    users,
+  },
 });
 
 export default db;

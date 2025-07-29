@@ -7,6 +7,12 @@ export function createRouter() {
   return new Hono();
 }
 
+export function protectRoute(app: Hono) {
+  app.use(async (c, next) => {
+
+  })
+}
+
 export default function createApp() {
   const app = createRouter();
 
