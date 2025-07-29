@@ -5,7 +5,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import app from "@/app";
 import env from "@/env";
 import db from "@/db";
-import CacheClient from "@/lib/msal/CacheClient";
+import CachePlugin from "@/lib/msal/CachePlugin";
 
 async function main() {
   if (env.NODE_ENV === "production") {
@@ -16,7 +16,7 @@ async function main() {
     console.log("✅ Migrations completed!");
   }
 
-  const { error } = await CacheClient.createCacheFileDir();
+  const { error } = await CachePlugin.createCacheFileDir();
   if (error) {
     console.error(error);
     process.exit(1);

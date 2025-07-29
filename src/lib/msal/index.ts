@@ -5,7 +5,7 @@ import {
 } from "@azure/msal-node";
 
 import env from "@/env";
-import CacheClient from "@/lib/msal/CacheClient";
+import CachePlugin from "@/lib/msal/CachePlugin";
 
 export const cryptoProvider = new CryptoProvider();
 
@@ -28,7 +28,7 @@ const cca = new ConfidentialClientApplication({
     clientSecret: env.MSAL_CLIENT_SECRET,
   },
   cache: {
-    cachePlugin: new CacheClient(),
+    cachePlugin: new CachePlugin(),
   },
   system: {
     loggerOptions: {

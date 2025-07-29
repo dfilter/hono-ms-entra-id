@@ -7,26 +7,26 @@ import type {
 import fs from "node:fs";
 import path from "path";
 
-export default class CacheClient implements ICachePlugin {
+export default class CachePlugin implements ICachePlugin {
   static cacheFilePath = path.join(process.cwd(), "cache");
-  static cacheFile = path.join(CacheClient.cacheFilePath, "cache.json");
+  static cacheFile = path.join(CachePlugin.cacheFilePath, "cache.json");
 
   static createCacheFileDir = tryCatch(
     async () =>
-      await fs.promises.mkdir(CacheClient.cacheFilePath, { recursive: true })
+      await fs.promises.mkdir(CachePlugin.cacheFilePath, { recursive: true })
   );
 
   writeCache = tryCatch(async (tokenCache: ISerializableTokenCache) => {
     const tokenCacheSerialized = tokenCache.serialize();
     await fs.promises.writeFile(
-      CacheClient.cacheFile,
+      CachePlugin.cacheFile,
       tokenCacheSerialized,
       "utf-8"
     );
   });
 
   readCache = tryCatch(
-    async () => await fs.promises.readFile(CacheClient.cacheFile, "utf-8")
+    async () => await fs.promises.readFile(CachePlugin.cacheFile, "utf-8")
   );
 
   async afterCacheAccess(tokenCacheContext: TokenCacheContext) {
@@ -38,7 +38,7 @@ export default class CacheClient implements ICachePlugin {
   async beforeCacheAccess(tokenCacheContext: TokenCacheContext) {
     if (!tokenCacheContext.cacheHasChanged) return;
 
-    if (!fs.existsSync(CacheClient.cacheFile)) {
+    if (!fs.existsSync(CachePlugin.cacheFile)) {
       await this.writeCache(tokenCacheContext.tokenCache);
       return;
     }
