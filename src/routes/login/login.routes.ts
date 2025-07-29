@@ -5,7 +5,7 @@ import { CookieOptions } from "hono/utils/cookie";
 import env from "@/env";
 import { createRouter } from "@/lib/create-app";
 import cca, { createState, cryptoProvider } from "@/lib/msal";
-import { upsertUserInsertSession } from "@/db/queries/sessions.queries";
+import { findOrCreateUserInsertSession } from "@/db/queries/sessions.queries";
 import { getSession } from "@/lib/session.helpers";
 
 const secure = env.NODE_ENV === "production";
@@ -95,7 +95,7 @@ loginRouter.get("/login/callback", async (c) => {
     email: account.username,
     roles: account.idTokenClaims?.roles,
   };
-  const { error, data } = await upsertUserInsertSession(user, session);
+  const { error, data } = await findOrCreateUserInsertSession(user, session);
   if (error) {
     return c.text(error.message, 500, { Location: "/" });
   }

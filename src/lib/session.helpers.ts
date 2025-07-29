@@ -6,7 +6,7 @@ import env from "@/env";
 import {
     deleteSession,
   selectSession,
-  upsertUserInsertSession,
+  findOrCreateUserInsertSession,
 } from "@/db/queries/sessions.queries";
 import { getCookie, setCookie } from "hono/cookie";
 
@@ -70,7 +70,7 @@ export async function getSession(c: Context) {
     roles: account.idTokenClaims?.roles,
   };
 
-  const { data } = await upsertUserInsertSession(user, newSession);
+  const { data } = await findOrCreateUserInsertSession(user, newSession);
   if (!data) return;
 
   const encodedToken = cryptoProvider.base64Encode(newToken);
