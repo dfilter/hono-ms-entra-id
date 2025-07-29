@@ -1,0 +1,35 @@
+{
+  "name": "hono-ms-entra-id",
+  "version": "1.0.0",
+  "description": "Hono API authenticated with Microsoft Entra ID ",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env --include './src/**/*' ./src/index.ts",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "seed": "tsx --env-file=.env ./src/db/seeder.ts",
+    "build": "tsc && tsc-alias",
+    "start": "node --env-file=.env ./dist/src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hono/node-server": "^1.15.0",
+    "drizzle-orm": "^0.44.2",
+    "drizzle-zod": "0.7.1",
+    "hono": "^4.8.4",
+    "pg": "^8.16.3",
+    "zod": "^4.0.13"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.12",
+    "@types/pg": "^8.15.4",
+    "drizzle-kit": "0.31.4",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@10.13.1"
+}
