@@ -15,14 +15,7 @@ const cookieOptions: CookieOptions = {
   secure,
   sameSite: "Lax",
 };
-const scopes = [
-  env.MSAL_CLIENT_SCOPE,
-  "User.Read",
-  "email",
-  "profile",
-  "openid",
-  "offline_access",
-];
+const scopes = env.MSAL_CLIENT_SCOPES;
 
 const loginRouter = createRouter();
 

@@ -1,3 +1,4 @@
+import { coerceStringArray } from "@/lib/zod";
 import { z } from "zod";
 
 const PORT = 9000;
@@ -17,7 +18,7 @@ const EnvSchema = z
     TOKEN: z.string().optional(),
     MSAL_CLIENT_ID: z.uuid(),
     MSAL_TENANT_ID: z.uuid(),
-    MSAL_CLIENT_SCOPE: z.string(),
+    MSAL_CLIENT_SCOPES: coerceStringArray,
     MSAL_CLIENT_SECRET: z.string(),
     MSAL_REDIRECT_URL: z.url().default(`http://localhost:${PORT}/login/callback`)
   })
