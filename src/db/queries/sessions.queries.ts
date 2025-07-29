@@ -5,6 +5,18 @@ import { SessionInsert, sessions } from "@/db/schema/sessions";
 import { UserInsert, users } from "@/db/schema/users";
 import { tryCatch } from "@/lib/error-handling";
 
+export const deleteSessions = tryCatch(
+  async (id: string) =>
+    await db.transaction(async (tx) => {
+      const session = await tx.query.sessions.findFirst({
+        columns: { userId: true },
+        where: (fields, operators) => operators.eq(fields.id, id),
+      });
+      if (!session) return;
+      await tx.delete(sessions).where(eq(sessions.userId, session.userId));
+    })
+);
+
 export const findOrCreateUserInsertSession = tryCatch(
   async (newUser: UserInsert, session: SessionInsert) =>
     await db.transaction(async (tx) => {
@@ -22,8 +34,8 @@ export const findOrCreateUserInsertSession = tryCatch(
     })
 );
 
-export const deleteSession = tryCatch(async (id: string) =>
-  await db.delete(sessions).where(eq(sessions.id, id))
+export const deleteSession = tryCatch(
+  async (id: string) => await db.delete(sessions).where(eq(sessions.id, id))
 );
 
 export const selectSession = (id: string) =>
