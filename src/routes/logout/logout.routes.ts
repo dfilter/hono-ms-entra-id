@@ -2,12 +2,10 @@ import { deleteCookie, getCookie } from "hono/cookie";
 import { StatusCodes } from "http-status-codes";
 
 import { deleteSessions } from "@/db/queries/sessions.queries";
-import { createRouter } from "@/lib/create-app";
 import { cryptoProvider } from "@/lib/msal";
+import factory from "@/lib/hono";
 
-const logoutRouter = createRouter();
-
-logoutRouter.get("/logout", async (c) => {
+const logoutHandlers = factory.createHandlers(async (c) => {
   const encodedToken = getCookie(c, "token");
   if (!encodedToken) return c.redirect("/", StatusCodes.MOVED_TEMPORARILY);
 
@@ -18,4 +16,4 @@ logoutRouter.get("/logout", async (c) => {
   return c.redirect("/", StatusCodes.MOVED_TEMPORARILY);
 });
 
-export default logoutRouter;
+export default logoutHandlers;

@@ -20,7 +20,9 @@ const EnvSchema = z
     MSAL_TENANT_ID: z.uuid(),
     MSAL_CLIENT_SCOPES: coerceStringArray,
     MSAL_CLIENT_SECRET: z.string(),
-    MSAL_REDIRECT_URL: z.url().default(`http://localhost:${PORT}/login/callback`)
+    MSAL_REDIRECT_URL: z
+      .url()
+      .default(`http://localhost:${PORT}/login/callback`),
   })
   .refine(
     (data) =>
@@ -37,7 +39,7 @@ const EnvSchema = z
       "TOKEN must be provided to the environment if NODE_ENV is anything other than 'development'.",
     path: ["TOKEN"],
   });
-export type env = z.infer<typeof EnvSchema>;
+export type Env = z.infer<typeof EnvSchema>;
 
 const { data: env, error } = EnvSchema.safeParse(process.env);
 
