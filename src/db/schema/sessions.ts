@@ -11,12 +11,13 @@ export const sessions = pgTable("sessions", {
   accessToken: text().notNull(),
   scopes: text()
     .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[`),
-  expiresOn: timestamp({ withTimezone: true }),
+    .default(sql`ARRAY[]::text[]`)
+    .notNull(),
+  expiresOn: timestamp(),
 });
 
 export type SessionInsert = typeof sessions.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
 
 export const sessionRelations = relations(sessions, ({ one }) => ({
   user: one(users, {
