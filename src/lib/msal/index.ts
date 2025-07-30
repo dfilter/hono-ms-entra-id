@@ -1,3 +1,9 @@
+import type {
+  AuthorizationCodePayload,
+  AuthorizationCodeRequest,
+  AuthorizationUrlRequest,
+  SilentFlowRequest,
+} from "@azure/msal-node";
 import {
   ConfidentialClientApplication,
   CryptoProvider,
@@ -6,6 +12,7 @@ import {
 
 import env from "@/env";
 import CachePlugin from "@/lib/msal/CachePlugin";
+import { tryCatch } from "@/lib/error-handling";
 
 export const cryptoProvider = new CryptoProvider();
 
@@ -41,4 +48,17 @@ const cca = new ConfidentialClientApplication({
   },
 });
 
-export default cca;
+export const acquireTokenByCode = tryCatch(
+  async (
+    request: AuthorizationCodeRequest,
+    authCodePayLoad?: AuthorizationCodePayload
+  ) => await cca.acquireTokenByCode(request, authCodePayLoad)
+);
+
+export const getAuthCodeUrl = tryCatch(
+  async (request: AuthorizationUrlRequest) => await cca.getAuthCodeUrl(request)
+);
+
+export const acquireTokenSilent = tryCatch(
+  async (request: SilentFlowRequest) => await cca.acquireTokenSilent(request)
+);

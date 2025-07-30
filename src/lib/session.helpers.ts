@@ -1,10 +1,14 @@
-import cca, { cryptoProvider, shouldTokenRefresh } from "@/lib/msal";
+import {
+  acquireTokenSilent,
+  cryptoProvider,
+  shouldTokenRefresh,
+} from "@/lib/msal";
 import { Context } from "hono";
 import { CookieOptions } from "hono/utils/cookie";
 
 import env from "@/env";
 import {
-    deleteSession,
+  deleteSession,
   selectSession,
   findOrCreateUserInsertSession,
 } from "@/db/queries/sessions.queries";
@@ -32,7 +36,7 @@ export async function getSession(c: Context) {
     return session;
   }
 
-  const authResult = await cca.acquireTokenSilent({
+  const { error, data: authResult } = await acquireTokenSilent({
     account: {
       environment: "login.windows.net",
       homeAccountId: `${session.userId}.${env.MSAL_TENANT_ID}`,
@@ -43,6 +47,7 @@ export async function getSession(c: Context) {
     scopes,
     forceRefresh: true,
   });
+  if (error) return;
 
   const account = authResult.account;
   if (!account) return;

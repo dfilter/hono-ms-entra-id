@@ -1,10 +1,14 @@
-import type { AuthenticationResult } from "@azure/msal-node";
 import { getCookie, setCookie } from "hono/cookie";
 import { CookieOptions } from "hono/utils/cookie";
 
 import env from "@/env";
 import { createRouter } from "@/lib/create-app";
-import cca, { createState, cryptoProvider } from "@/lib/msal";
+import {
+  acquireTokenByCode,
+  createState,
+  cryptoProvider,
+  getAuthCodeUrl,
+} from "@/lib/msal";
 import { findOrCreateUserInsertSession } from "@/db/queries/sessions.queries";
 import { getSession } from "@/lib/session.helpers";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
@@ -26,12 +30,19 @@ loginRouter.get("/login", async (c) => {
   const state = createState();
   const nonce = createState();
 
-  const url = await cca.getAuthCodeUrl({
+  const { error, data: url } = await getAuthCodeUrl({
     state,
     nonce,
     redirectUri: env.MSAL_REDIRECT_URL,
     scopes,
   });
+  if (error) {
+    return c.text(
+      ReasonPhrases.INTERNAL_SERVER_ERROR,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      { Location: "/" }
+    );
+  }
 
   setCookie(c, "state", state, cookieOptions);
   setCookie(c, "nonce", nonce, cookieOptions);
@@ -52,18 +63,15 @@ loginRouter.get("/login/callback", async (c) => {
     });
   }
 
-  let authResult: AuthenticationResult;
-  try {
-    authResult = await cca.acquireTokenByCode(
-      {
-        code,
-        redirectUri: env.MSAL_REDIRECT_URL,
-        scopes,
-      },
-      { code, nonce, state }
-    );
-  } catch (e) {
-    console.error(e);
+  const { error: codeError, data: authResult } = await acquireTokenByCode(
+    {
+      code,
+      redirectUri: env.MSAL_REDIRECT_URL,
+      scopes,
+    },
+    { code, nonce, state }
+  );
+  if (codeError) {
     return c.text(
       ReasonPhrases.INTERNAL_SERVER_ERROR,
       StatusCodes.INTERNAL_SERVER_ERROR,
@@ -97,7 +105,7 @@ loginRouter.get("/login/callback", async (c) => {
     email: account.username,
     roles: account.idTokenClaims?.roles,
   };
-  const { error, data } = await findOrCreateUserInsertSession(user, session);
+  const { error } = await findOrCreateUserInsertSession(user, session);
   if (error) {
     return c.text(
       ReasonPhrases.INTERNAL_SERVER_ERROR,
